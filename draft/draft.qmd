@@ -1,0 +1,91 @@
+---
+title: "The Scaling Behaviour of an MST-Based Stringy Scagnostic"
+subtitle: "Understanding Sample-Size Dependence Through MST Geometry and Null Calibration"
+author: "Tina Rashid Jafari"
+date: 2026-10-01
+bibliography: references.bib
+keywords:
+  - scagnostics
+  - projection pursuit
+  - minimum spanning tree
+  - scaling behaviour
+  - weighted diameter
+  - null calibration
+  - geometric statistics
+  - high-dimensional visualization
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: true
+  pdf:
+    number-sections: true
+    keep-tex: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(cassowaryr)
+library(igraph)
+library(ggplot2)
+library(patchwork)
+library(knitr)
+library(readr)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(scales)
+
+col_weighted <- "#0072B2"
+col_hop      <- "#D55E00"
+col_mean     <- "#0072B2"
+col_theory   <- "#CC79A7"
+col_null     <- "#009E73"
+col_grey     <- "grey72"
+
+paper_theme <- theme_bw(base_size = 11) +
+  theme(
+    aspect.ratio = 1,
+    panel.grid.minor = element_blank(),
+    strip.background = element_rect(fill = "grey96", colour = "grey70"),
+    strip.text = element_text(face = "bold"),
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(colour = "grey30"),
+    legend.position = "bottom"
+  )
+```
+
+
+# Abstract
+
+Scagnostics summarize geometric features of bivariate point clouds using graph-based quantities developed from Tukey's scatterplot-diagnostic ideas [@tukey1985graphics; @wilkinson2005graph; @wilkinson2008scagdist]. They are attractive candidates for projection pursuit because projection pursuit searches for informative low-dimensional views by optimizing an index over projections [@friedman1974projection; @huber1985projection; @friedman1987exploratory; @cook1995grandtour]. However, a projection-pursuit index should respond primarily to structure rather than to sample size alone; comparable scales and distributions were explicitly identified as desirable properties for scagnostic measures by @wilkinson2008scagdist. This paper investigates the finite-sample scaling behaviour of the MST-based `stringy05` scagnostic,
+
+$$
+S_n=\frac{D_n}{L_n},
+$$
+
+where $L_n$ is the total Euclidean length of the minimum spanning tree (MST) and $D_n$ is its weighted diameter. Although both quantities are computed from the same tree, they capture fundamentally different aspects of its geometry: $L_n$ accumulates length across all MST edges, whereas $D_n$ records only the accumulated Euclidean length of the longest path.
+
+We use theoretical results for Euclidean MSTs together with simulation experiments to determine how these two components contribute to the sample-size dependence of Stringy. For bivariate uniform data, the denominator follows the theoretically established $\sqrt n$ scaling of total Euclidean MST length [@steele1988growth]. The numerator is more difficult: no directly applicable theoretical growth rate is available for the weighted Euclidean MST diameter. Empirically, it is not well described by either the longest-edge scaling from Euclidean MST theory [@penrose1997longest] or the $n^{1/3}$ graph-diameter benchmark obtained for a different random-MST model [@addarioberry2006diameter]. Among the candidate scaling functions examined, $\log n$ provides the strongest stabilization of the mean weighted diameter over the larger simulated sample sizes, although this is an empirical finite-sample result rather than an asymptotic claim.
+
+Using these separate scalings yields
+
+$$
+\widetilde S_n
+=
+S_n\frac{\sqrt n}{\log n},
+$$
+
+which substantially reduces the trend in the centre of the distribution but introduces two important limitations: it does not fully stabilize the distribution and it destroys the natural $[0,1]$ bound of the original scagnostic. We also show that weighted and hop-based versions of Stringy are not interchangeable; they can select different MST paths because they measure accumulated geometric length and edge count, respectively.
+
+These findings suggest that deterministic scaling is most useful for explaining *why* Stringy changes with sample size, rather than for redefining the index itself. We therefore motivate a complementary statistical solution: retain the original bounded Stringy measure and calibrate it relative to its sample-size-specific null distribution. In particular, we examine models for the upper null quantiles and outline a bounded null-calibrated transformation for projection pursuit. This separates geometric understanding from statistical interpretation and provides a principled route toward using Stringy as a projection-pursuit index.
+
+
+
+
+# References
