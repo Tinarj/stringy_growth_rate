@@ -104,7 +104,8 @@ window.Quarto = {
    
   <ul>
   <li><a href="#abstract" id="toc-abstract" class="nav-link active" data-scroll-target="#abstract"><span class="header-section-number">1</span> Abstract</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">2</span> References</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">2</span> Introduction</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">3</span> References</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="draft.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -165,17 +166,72 @@ S_n\frac{\sqrt n}{\log n},
 <p>which substantially reduces the trend in the centre of the distribution but introduces two important limitations: it does not fully stabilize the distribution and it destroys the natural <span class="math inline">\([0,1]\)</span> bound of the original scagnostic. We also show that weighted and hop-based versions of Stringy are not interchangeable; they can select different MST paths because they measure accumulated geometric length and edge count, respectively.</p>
 <p>These findings suggest that deterministic scaling is most useful for explaining <em>why</em> Stringy changes with sample size, rather than for redefining the index itself. We therefore motivate a complementary statistical solution: retain the original bounded Stringy measure and calibrate it relative to its sample-size-specific null distribution. In particular, we examine models for the upper null quantiles and outline a bounded null-calibrated transformation for projection pursuit. This separates geometric understanding from statistical interpretation and provides a principled route toward using Stringy as a projection-pursuit index.</p>
 </section>
-<section id="references" class="level1 unnumbered" data-number="2">
+<section id="introduction" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Introduction</h1>
+<p>Projection pursuit is built on a simple idea: if a high-dimensional dataset contains an informative low-dimensional view, an index should be able to recognize it. The method searches over projections and assigns high values to views displaying the type of structure of interest <span class="citation" data-cites="friedman1974projection huber1985projection friedman1987exploratory">(<a href="#ref-friedman1974projection" role="doc-biblioref">Friedman and Tukey 1974</a>; <a href="#ref-huber1985projection" role="doc-biblioref">Huber 1985</a>; <a href="#ref-friedman1987exploratory" role="doc-biblioref">Friedman 1987</a>)</span>. Guided and grand tours later connected this optimization perspective with dynamic visualization, allowing analysts to move through the space of projections while using an index to direct attention toward potentially informative views <span class="citation" data-cites="cook1995grandtour wickham2011tourr">(<a href="#ref-cook1995grandtour" role="doc-biblioref">Cook et al. 1995</a>; <a href="#ref-wickham2011tourr" role="doc-biblioref">Wickham et al. 2011</a>)</span>.</p>
+<p>This seemingly simple task places strong demands on the index. A projection-pursuit index should respond to the structure present in a projection, but it should not change substantially because of features unrelated to that structure. Sample size is one such feature. If the same underlying distribution receives systematically different index values as the number of observations changes, then an optimizer may be responding partly to the finite-sample behaviour of the index rather than to the geometry of the data. For projection pursuit, this distinction is fundamental: an index is useful only if a high value can be interpreted as evidence of the target structure rather than as a consequence of how many points happen to be present.</p>
+<p>Scagnostics are particularly appealing in this setting because they were designed to quantify visual characteristics of scatterplots. The idea has its roots in Tukey’s broader program of exploratory data analysis and graphical methods <span class="citation" data-cites="tukey1975picturing tukey1977eda">(<a href="#ref-tukey1975picturing" role="doc-biblioref">Tukey 1975</a>, <a href="#ref-tukey1977eda" role="doc-biblioref">1977</a>)</span>, and more specifically in Tukey and Tukey’s notion of scatterplot diagnostics <span class="citation" data-cites="tukey1985graphics">(<a href="#ref-tukey1985graphics" role="doc-biblioref">Tukey and Tukey 1985</a>)</span>. The modern graph-theoretic formulation represents a bivariate point cloud using structures such as the minimum spanning tree (MST), convex hull, and alpha hull, and then constructs numerical measures of properties such as stringy, sparsity, clumpy, convexity, and outlying <span class="citation" data-cites="wilkinson2005graph wilkinson2006highdim wilkinson2008scagdist">(<a href="#ref-wilkinson2005graph" role="doc-biblioref">Wilkinson et al. 2005</a>, <a href="#ref-wilkinson2006highdim" role="doc-biblioref">2006</a>; <a href="#ref-wilkinson2008scagdist" role="doc-biblioref">Wilkinson and Wills 2008</a>)</span>.</p>
+<p>Because scagnostics translate visual structure into numerical indices, they are natural candidates for high-dimensional exploration and projection pursuit. They have been used to guide searches through high-dimensional projections and evolving multivariate data <span class="citation" data-cites="wilkinson2006highdim anand2012random dang2013timeseer dang2014transforming">(<a href="#ref-wilkinson2006highdim" role="doc-biblioref">Wilkinson et al. 2006</a>; <a href="#ref-anand2012random" role="doc-biblioref">Anand et al. 2012</a>; <a href="#ref-dang2013timeseer" role="doc-biblioref">Dang et al. 2013</a>; <a href="#ref-dang2014transforming" role="doc-biblioref">Dang and Wilkinson 2014</a>)</span>. Their statistical behaviour, however, matters just as much as their visual interpretation. Previous work has considered the distributions of scagnostic measures, the desirability of comparable scales, transformations intended to expose hidden structure, and sensitivity to preprocessing choices such as binning <span class="citation" data-cites="wilkinson2008scagdist dang2014transforming wang2020robustscag">(<a href="#ref-wilkinson2008scagdist" role="doc-biblioref">Wilkinson and Wills 2008</a>; <a href="#ref-dang2014transforming" role="doc-biblioref">Dang and Wilkinson 2014</a>; <a href="#ref-wang2020robustscag" role="doc-biblioref">Wang et al. 2020</a>)</span>.</p>
+<p>This paper focuses on one particular scagnostic, <code>stringy05</code>, whose definition is based entirely on the geometry of the MST. For a Euclidean MST <span class="math inline">\(T_n\)</span> constructed from <span class="math inline">\(n\)</span> bivariate observations, Stringy is defined as</p>
+<p><span class="math display">\[
+S_n=\frac{D_n}{L_n},
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+L_n=\sum_{e\in T_n}|e|
+\]</span></p>
+<p>is the total Euclidean length of the tree and</p>
+<p><span class="math display">\[
+D_n=\max_{u,v\in T_n} d_{T_n}(u,v)
+\]</span></p>
+<p>is the weighted graph diameter, namely the accumulated Euclidean length of the longest path through the MST.</p>
+<p>The interpretation is intuitive. If the MST is almost one long unbranched path, most of the total tree length lies along its diameter, so <span class="math inline">\(D_n\)</span> is close to <span class="math inline">\(L_n\)</span> and <span class="math inline">\(S_n\)</span> approaches one. If the tree branches extensively, no single path contains most of the total length and Stringy becomes smaller <span class="citation" data-cites="wilkinson2005graph wilkinson2008scagdist">(<a href="#ref-wilkinson2005graph" role="doc-biblioref">Wilkinson et al. 2005</a>; <a href="#ref-wilkinson2008scagdist" role="doc-biblioref">Wilkinson and Wills 2008</a>)</span>.</p>
+<p>The difficulty is hidden inside this apparently simple ratio. The numerator and denominator are not the same kind of random geometric object. The denominator is additive: it sums the lengths of all <span class="math inline">\(n-1\)</span> MST edges. The numerator is extremal: it first identifies the longest weighted path in the tree and then sums only the edge lengths along that path. There is therefore no reason to expect the two quantities to scale identically with sample size.</p>
+<p>This distinction becomes practically important because the null behaviour of Stringy changes with <span class="math inline">\(n\)</span>. In simulations of unstructured data, the upper tail of the Stringy distribution decreases as sample size increases. Consequently, the same observed Stringy value can represent very different levels of unusualness at different sample sizes. For projection pursuit, where an optimizer may evaluate thousands of candidate projections, such sample-size dependence can distort how the index distinguishes structure from background noise.</p>
+<p>Understanding this behaviour requires separating the ratio into its geometric components. For total Euclidean MST length, classical results provide a clear scaling law. In two dimensions and under suitable regularity conditions,</p>
+<p><span class="math display">\[
+L_n
+\]</span></p>
+<p>grows on the order of</p>
+<p><span class="math display">\[
+\sqrt n
+\]</span> <span class="citation" data-cites="steele1988growth">(<a href="#ref-steele1988growth" role="doc-biblioref">Steele 1988</a>)</span>. The weighted diameter is more difficult. Results exist for nearby quantities, such as the longest Euclidean MST edge <span class="citation" data-cites="penrose1997longest">(<a href="#ref-penrose1997longest" role="doc-biblioref">Penrose 1997</a>)</span> and the graph diameter of random MSTs under different probabilistic models <span class="citation" data-cites="addarioberry2006diameter">(<a href="#ref-addarioberry2006diameter" role="doc-biblioref">Addario-Berry et al. 2006</a>)</span>, but these results do not directly give the growth rate of the weighted Euclidean MST diameter used in Stringy.</p>
+<p>This theoretical gap motivates the main investigation of the paper. Rather than assuming a growth rate for the numerator, we compare several candidate scaling functions empirically and examine which best removes systematic sample-size trends. Importantly, we do not judge a normalization only by whether it flattens the mean. A useful correction should also be examined in terms of relative spread and upper-tail behaviour, because these determine whether the statistic is genuinely becoming comparable across sample sizes.</p>
+<p>The analysis also reveals a second problem. A deterministic correction based on separately scaling the numerator and denominator can substantially reduce the sample-size trend, but it no longer preserves the original unit-interval property</p>
+<p><span class="math display">\[
+0&lt;S_n\leq1.
+\]</span></p>
+<p>This raises a broader methodological question: should the geometry of Stringy itself be redefined in order to remove sample-size effects, or should the original geometric index instead be retained and calibrated statistically against its null distribution?</p>
+<p>The paper addresses five questions:</p>
+<ol type="1">
+<li>Does total Euclidean MST length behave as predicted by established Euclidean MST theory?</li>
+<li>Can the weighted Stringy diameter be explained by nearby theoretical quantities such as the longest edge or hop diameter?</li>
+<li>Which empirical scaling functions best stabilize the weighted diameter over the simulated range?</li>
+<li>Does a scaling function that stabilizes the mean also stabilize relative dispersion and the upper tail?</li>
+<li>Is sample-size-aware null calibration a more appropriate solution than replacing the original bounded definition of Stringy?</li>
+</ol>
+<p>The paper is deliberately framed as an empirical scaling investigation rather than as a derivation of the asymptotic growth rate of the weighted Euclidean MST diameter. The contribution is instead to connect known MST theory with the finite-sample behaviour of Stringy, identify which component drives the sample-size dependence, evaluate the limits of deterministic scaling, and motivate a statistically calibrated version of the index for projection pursuit.</p>
+</section>
+<section id="references" class="level1 unnumbered" data-number="3">
 
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">2 References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">3 References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-addarioberry2006diameter" class="csl-entry" role="listitem">
 Addario-Berry, Louigi, Nicolas Broutin, and Bruce Reed. 2006. <span>“The Diameter of the Minimum Spanning Tree of a Complete Graph.”</span> <em>Discrete Mathematics &amp; Theoretical Computer Science Proceedings</em> AG: 237–48. <a href="https://doi.org/10.46298/dmtcs.3513">https://doi.org/10.46298/dmtcs.3513</a>.
 </div>
+<div id="ref-anand2012random" class="csl-entry" role="listitem">
+Anand, Anushka, Leland Wilkinson, and Tuan Nhon Dang. 2012. <span>“Visual Pattern Discovery Using Random Projections.”</span> <em>2012 IEEE Conference on Visual Analytics Science and Technology (VAST)</em>, 43–52. <a href="https://doi.org/10.1109/VAST.2012.6400490">https://doi.org/10.1109/VAST.2012.6400490</a>.
+</div>
 <div id="ref-cook1995grandtour" class="csl-entry" role="listitem">
 Cook, Dianne, Andreas Buja, Javier Cabrera, and Catherine Hurley. 1995. <span>“Grand Tour and Projection Pursuit.”</span> <em>Journal of Computational and Graphical Statistics</em> 4 (3): 155–72. <a href="https://doi.org/10.1080/10618600.1995.10474674">https://doi.org/10.1080/10618600.1995.10474674</a>.
+</div>
+<div id="ref-dang2013timeseer" class="csl-entry" role="listitem">
+Dang, Tuan Nhon, Anushka Anand, and Leland Wilkinson. 2013. <span>“TimeSeer: Scagnostics for High-Dimensional Time Series.”</span> <em>IEEE Transactions on Visualization and Computer Graphics</em> 19 (3): 470–83. <a href="https://doi.org/10.1109/TVCG.2012.128">https://doi.org/10.1109/TVCG.2012.128</a>.
+</div>
+<div id="ref-dang2014transforming" class="csl-entry" role="listitem">
+Dang, Tuan Nhon, and Leland Wilkinson. 2014. <span>“Transforming Scagnostics to Reveal Hidden Features.”</span> <em>IEEE Transactions on Visualization and Computer Graphics</em> 20 (12): 1624–32. <a href="https://doi.org/10.1109/TVCG.2014.2346572">https://doi.org/10.1109/TVCG.2014.2346572</a>.
 </div>
 <div id="ref-friedman1987exploratory" class="csl-entry" role="listitem">
 Friedman, Jerome H. 1987. <span>“Exploratory Projection Pursuit.”</span> <em>Journal of the American Statistical Association</em> 82 (397): 249–66. <a href="https://doi.org/10.1080/01621459.1987.10478427">https://doi.org/10.1080/01621459.1987.10478427</a>.
@@ -192,11 +248,26 @@ Penrose, Mathew D. 1997. <span>“The Longest Edge of the Random Minimal Spannin
 <div id="ref-steele1988growth" class="csl-entry" role="listitem">
 Steele, J. Michael. 1988. <span>“Growth Rates of Euclidean Minimal Spanning Trees with Power Weighted Edges.”</span> <em>The Annals of Probability</em> 16 (4): 1767–87. <a href="https://doi.org/10.1214/aop/1176991596">https://doi.org/10.1214/aop/1176991596</a>.
 </div>
+<div id="ref-tukey1975picturing" class="csl-entry" role="listitem">
+Tukey, John W. 1975. <span>“Mathematics and the Picturing of Data.”</span> <em>Proceedings of the International Congress of Mathematicians (Vancouver, BC, 1974), Volume 2</em> (Montreal, Canada), 523–31.
+</div>
+<div id="ref-tukey1977eda" class="csl-entry" role="listitem">
+Tukey, John W. 1977. <em>Exploratory Data Analysis</em>. Addison-Wesley.
+</div>
 <div id="ref-tukey1985graphics" class="csl-entry" role="listitem">
 Tukey, John W., and Paul A. Tukey. 1985. <span>“Computer Graphics and Exploratory Data Analysis: An Introduction.”</span> <em>Proceedings of the Sixth Annual Conference and Exposition: Computer Graphics ’85, Volume III, Technical Sessions</em> (Fairfax, VA), 773–85.
 </div>
+<div id="ref-wang2020robustscag" class="csl-entry" role="listitem">
+Wang, Yunhai, Zeyu Wang, Tingting Liu, et al. 2020. <span>“Improving the Robustness of Scagnostics.”</span> <em>IEEE Transactions on Visualization and Computer Graphics</em> 26 (1): 759–69. <a href="https://doi.org/10.1109/TVCG.2019.2934796">https://doi.org/10.1109/TVCG.2019.2934796</a>.
+</div>
+<div id="ref-wickham2011tourr" class="csl-entry" role="listitem">
+Wickham, Hadley, Dianne Cook, Heike Hofmann, and Andreas Buja. 2011. <span>“Tourr: An r Package for Exploring Multivariate Data with Projections.”</span> <em>Journal of Statistical Software</em> 40 (2): 1–18. <a href="https://doi.org/10.18637/jss.v040.i02">https://doi.org/10.18637/jss.v040.i02</a>.
+</div>
 <div id="ref-wilkinson2005graph" class="csl-entry" role="listitem">
 Wilkinson, Leland, Anushka Anand, and Robert Grossman. 2005. <span>“Graph-Theoretic Scagnostics.”</span> <em>IEEE Symposium on Information Visualization, 2005. INFOVIS 2005</em>, 157–64. <a href="https://doi.org/10.1109/INFVIS.2005.1532142">https://doi.org/10.1109/INFVIS.2005.1532142</a>.
+</div>
+<div id="ref-wilkinson2006highdim" class="csl-entry" role="listitem">
+Wilkinson, Leland, Anushka Anand, and Robert L. Grossman. 2006. <span>“High-Dimensional Visual Analytics: Interactive Exploration Guided by Pairwise Views of Point Distributions.”</span> <em>IEEE Transactions on Visualization and Computer Graphics</em> 12 (6): 1363–72. <a href="https://doi.org/10.1109/TVCG.2006.94">https://doi.org/10.1109/TVCG.2006.94</a>.
 </div>
 <div id="ref-wilkinson2008scagdist" class="csl-entry" role="listitem">
 Wilkinson, Leland, and Graham Wills. 2008. <span>“Scagnostics Distributions.”</span> <em>Journal of Computational and Graphical Statistics</em> 17 (2): 473–91. <a href="https://doi.org/10.1198/106186008X320465">https://doi.org/10.1198/106186008X320465</a>.

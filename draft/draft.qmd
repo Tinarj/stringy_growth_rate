@@ -85,6 +85,83 @@ which substantially reduces the trend in the centre of the distribution but intr
 
 These findings suggest that deterministic scaling is most useful for explaining *why* Stringy changes with sample size, rather than for redefining the index itself. We therefore motivate a complementary statistical solution: retain the original bounded Stringy measure and calibrate it relative to its sample-size-specific null distribution. In particular, we examine models for the upper null quantiles and outline a bounded null-calibrated transformation for projection pursuit. This separates geometric understanding from statistical interpretation and provides a principled route toward using Stringy as a projection-pursuit index.
 
+# Introduction
+
+Projection pursuit is built on a simple idea: if a high-dimensional dataset contains an informative low-dimensional view, an index should be able to recognize it. The method searches over projections and assigns high values to views displaying the type of structure of interest [@friedman1974projection; @huber1985projection; @friedman1987exploratory]. Guided and grand tours later connected this optimization perspective with dynamic visualization, allowing analysts to move through the space of projections while using an index to direct attention toward potentially informative views [@cook1995grandtour; @wickham2011tourr].
+
+
+This seemingly simple task places strong demands on the index. A projection-pursuit index should respond to the structure present in a projection, but it should not change substantially because of features unrelated to that structure. Sample size is one such feature. If the same underlying distribution receives systematically different index values as the number of observations changes, then an optimizer may be responding partly to the finite-sample behaviour of the index rather than to the geometry of the data. For projection pursuit, this distinction is fundamental: an index is useful only if a high value can be interpreted as evidence of the target structure rather than as a consequence of how many points happen to be present.
+
+Scagnostics are particularly appealing in this setting because they were designed to quantify visual characteristics of scatterplots. The idea has its roots in Tukey's broader program of exploratory data analysis and graphical methods [@tukey1975picturing; @tukey1977eda], and more specifically in Tukey and Tukey's notion of scatterplot diagnostics [@tukey1985graphics]. The modern graph-theoretic formulation represents a bivariate point cloud using structures such as the minimum spanning tree (MST), convex hull, and alpha hull, and then constructs numerical measures of properties such as stringy, sparsity, clumpy, convexity, and outlying [@wilkinson2005graph; @wilkinson2006highdim; @wilkinson2008scagdist].
+
+Because scagnostics translate visual structure into numerical indices, they are natural candidates for high-dimensional exploration and projection pursuit. They have been used to guide searches through high-dimensional projections and evolving multivariate data [@wilkinson2006highdim; @anand2012random; @dang2013timeseer; @dang2014transforming]. Their statistical behaviour, however, matters just as much as their visual interpretation. Previous work has considered the distributions of scagnostic measures, the desirability of comparable scales, transformations intended to expose hidden structure, and sensitivity to preprocessing choices such as binning [@wilkinson2008scagdist; @dang2014transforming; @wang2020robustscag].
+
+
+This paper focuses on one particular scagnostic, `stringy05`, whose definition is based entirely on the geometry of the MST. For a Euclidean MST $T_n$ constructed from $n$ bivariate observations, Stringy is defined as
+
+$$
+S_n=\frac{D_n}{L_n},
+$$
+
+where
+
+$$
+L_n=\sum_{e\in T_n}|e|
+$$
+
+is the total Euclidean length of the tree and
+
+$$
+D_n=\max_{u,v\in T_n} d_{T_n}(u,v)
+$$
+
+
+is the weighted graph diameter, namely the accumulated Euclidean length of the longest path through the MST.
+
+The interpretation is intuitive. If the MST is almost one long unbranched path, most of the total tree length lies along its diameter, so $D_n$ is close to $L_n$ and $S_n$ approaches one. If the tree branches extensively, no single path contains most of the total length and Stringy becomes smaller [@wilkinson2005graph; @wilkinson2008scagdist].
+
+The difficulty is hidden inside this apparently simple ratio. The numerator and denominator are not the same kind of random geometric object. The denominator is additive: it sums the lengths of all $n-1$ MST edges. The numerator is extremal: it first identifies the longest weighted path in the tree and then sums only the edge lengths along that path. There is therefore no reason to expect the two quantities to scale identically with sample size.
+
+This distinction becomes practically important because the null behaviour of Stringy changes with $n$. In simulations of unstructured data, the upper tail of the Stringy distribution decreases as sample size increases. Consequently, the same observed Stringy value can represent very different levels of unusualness at different sample sizes. For projection pursuit, where an optimizer may evaluate thousands of candidate projections, such sample-size dependence can distort how the index distinguishes structure from background noise.
+
+
+Understanding this behaviour requires separating the ratio into its geometric components. For total Euclidean MST length, classical results provide a clear scaling law. In two dimensions and under suitable regularity conditions,
+
+$$
+L_n
+$$
+
+grows on the order of
+
+$$
+\sqrt n
+$$
+[@steele1988growth]. The weighted diameter is more difficult. Results exist for nearby quantities, such as the longest Euclidean MST edge [@penrose1997longest] and the graph diameter of random MSTs under different probabilistic models [@addarioberry2006diameter], but these results do not directly give the growth rate of the weighted Euclidean MST diameter used in Stringy.
+
+This theoretical gap motivates the main investigation of the paper. Rather than assuming a growth rate for the numerator, we compare several candidate scaling functions empirically and examine which best removes systematic sample-size trends. Importantly, we do not judge a normalization only by whether it flattens the mean. A useful correction should also be examined in terms of relative spread and upper-tail behaviour, because these determine whether the statistic is genuinely becoming comparable across sample sizes.
+
+
+The analysis also reveals a second problem. A deterministic correction based on separately scaling the numerator and denominator can substantially reduce the sample-size trend, but it no longer preserves the original unit-interval property
+
+$$
+0<S_n\leq1.
+$$
+
+This raises a broader methodological question: should the geometry of Stringy itself be redefined in order to remove sample-size effects, or should the original geometric index instead be retained and calibrated statistically against its null distribution?
+
+The paper addresses five questions:
+
+1. Does total Euclidean MST length behave as predicted by established Euclidean MST theory?
+2. Can the weighted Stringy diameter be explained by nearby theoretical quantities such as the longest edge or hop diameter?
+3. Which empirical scaling functions best stabilize the weighted diameter over the simulated range?
+4. Does a scaling function that stabilizes the mean also stabilize relative dispersion and the upper tail?
+5. Is sample-size-aware null calibration a more appropriate solution than replacing the original bounded definition of Stringy?
+
+The paper is deliberately framed as an empirical scaling investigation rather than as a derivation of the asymptotic growth rate of the weighted Euclidean MST diameter. The contribution is instead to connect known MST theory with the finite-sample behaviour of Stringy, identify which component drives the sample-size dependence, evaluate the limits of deterministic scaling, and motivate a statistically calibrated version of the index for projection pursuit.
+
+
+
+
 
 
 
