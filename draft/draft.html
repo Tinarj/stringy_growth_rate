@@ -105,7 +105,12 @@ window.Quarto = {
   <ul>
   <li><a href="#abstract" id="toc-abstract" class="nav-link active" data-scroll-target="#abstract"><span class="header-section-number">1</span> Abstract</a></li>
   <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">2</span> Introduction</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">3</span> References</a></li>
+  <li><a href="#geometry-of-the-stringy-statistic" id="toc-geometry-of-the-stringy-statistic" class="nav-link" data-scroll-target="#geometry-of-the-stringy-statistic"><span class="header-section-number">3</span> Geometry of the Stringy statistic</a>
+  <ul class="collapse">
+  <li><a href="#anatomy-of-the-index" id="toc-anatomy-of-the-index" class="nav-link" data-scroll-target="#anatomy-of-the-index"><span class="header-section-number">3.1</span> Anatomy of the index</a></li>
+  <li><a href="#same-distribution-increasingly-dense-msts" id="toc-same-distribution-increasingly-dense-msts" class="nav-link" data-scroll-target="#same-distribution-increasingly-dense-msts"><span class="header-section-number">3.2</span> Same distribution, increasingly dense MSTs</a></li>
+  </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">4</span> References</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="draft.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -212,12 +217,82 @@ L_n
 </ol>
 <p>The paper is deliberately framed as an empirical scaling investigation rather than as a derivation of the asymptotic growth rate of the weighted Euclidean MST diameter. The contribution is instead to connect known MST theory with the finite-sample behaviour of Stringy, identify which component drives the sample-size dependence, evaluate the limits of deterministic scaling, and motivate a statistically calibrated version of the index for projection pursuit.</p>
 </section>
-<section id="references" class="level1 unnumbered" data-number="3">
+<section id="geometry-of-the-stringy-statistic" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Geometry of the Stringy statistic</h1>
+<p>Stringy is defined by a remarkably simple ratio, but that simplicity hides a more interesting geometric story.</p>
+<p>Minimum spanning trees have long been used to summarize spatial relationships among observations. Classical statistical connections include single-linkage clustering <span class="citation" data-cites="gower1969mst">(<a href="#ref-gower1969mst" role="doc-biblioref">Gower and Ross 1969</a>)</span> and later density-based cluster estimation using the sample MST <span class="citation" data-cites="stuetzle2003cluster">(<a href="#ref-stuetzle2003cluster" role="doc-biblioref">Stuetzle 2003</a>)</span>. In scagnostics, however, the role of the MST is different: it acts as a geometric skeleton of the scatterplot, from which visual characteristics of the point cloud can be quantified <span class="citation" data-cites="wilkinson2005graph wilkinson2008scagdist">(<a href="#ref-wilkinson2005graph" role="doc-biblioref">Wilkinson et al. 2005</a>; <a href="#ref-wilkinson2008scagdist" role="doc-biblioref">Wilkinson and Wills 2008</a>)</span>.</p>
+<p>For Stringy, the key question is not simply how large the MST is. It is how much of that tree can be captured by one dominant path.</p>
+<section id="anatomy-of-the-index" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="anatomy-of-the-index"><span class="header-section-number">3.1</span> Anatomy of the index</h2>
+<p>The distinction among total tree length, weighted diameter, and longest individual edge is easiest to understand by looking directly at the tree.</p>
+<p><a href="#fig-stringy-anatomy" class="quarto-xref">Figure&nbsp;1</a> shows the same structured point cloud and exactly the same MST, but highlights two different geometric objects. In the left panel, the emphasized path is the <strong>weighted diameter</strong>: the path through the MST whose accumulated Euclidean edge length is largest. This is the quantity used in the numerator of Stringy. In the right panel, only the <strong>single longest edge</strong> is highlighted.</p>
+<p>The contrast is important. The longest edge is a local extreme: it identifies one unusually long connection in the tree. The weighted diameter is global: it can pass through many comparatively short edges and accumulate a much larger total length. Although both quantities come from the same MST, they answer fundamentally different geometric questions.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-stringy-anatomy" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-stringy-anatomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="draft_files/figure-html/fig-stringy-anatomy-1.png" class="img-fluid figure-img" width="864">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-stringy-anatomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Two different geometric summaries of the same minimum spanning tree. Left: the weighted diameter, defined as the path with the greatest accumulated Euclidean length and used in the numerator of Stringy. Right: the single longest MST edge. The comparison illustrates why longest-edge theory does not directly determine the behaviour of the Stringy numerator.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The original Stringy index compares the length of the longest weighted path with the total length of the tree,</p>
+<p><span class="math display">\[
+S_n=\frac{D_n}{L_n}.
+\]</span></p>
+<p>Because every diameter path consists only of edges already contained in the MST,</p>
+<p><span class="math display">\[
+0&lt;D_n\leq L_n,
+\]</span></p>
+<p>and therefore</p>
+<p><span class="math display">\[
+0&lt;S_n\leq1.
+\]</span></p>
+<p>This bound is built directly into the geometry of the index. A value near one means that most of the tree can be traversed along a single dominant path; a smaller value indicates that more of the total tree length lies in branches away from that path.</p>
+<p>This structural bound becomes especially important later. Any proposed normalization that modifies the numerator and denominator differently may reduce sample-size dependence, but it may also break the geometric relationship that guarantees Stringy remains between zero and one.</p>
+</section>
+<section id="same-distribution-increasingly-dense-msts" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="same-distribution-increasingly-dense-msts"><span class="header-section-number">3.2</span> Same distribution, increasingly dense MSTs</h2>
+<p>The sample-size problem becomes more intuitive when the tree is allowed to grow.</p>
+<p><a href="#fig-growing-mst" class="quarto-xref">Figure&nbsp;2</a> shows four independent samples from exactly the same data-generating mechanism,</p>
+<p><span class="math display">\[
+(X,Y)\sim U(0,1)^2,
+\]</span></p>
+<p>with only the sample size changing. The square itself does not expand, the underlying distribution does not change, and no new structure is introduced. What changes is the resolution at which the region is sampled.</p>
+<p>As <span class="math inline">\(n\)</span> increases, the MST fills the same spatial domain with more vertices and therefore more edges. Individual edges become shorter, but there are more of them. The total tree length, the weighted diameter, and their ratio do not respond to these changes in the same way.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-growing-mst" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-growing-mst-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="draft_files/figure-html/fig-growing-mst-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-growing-mst-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The geometry of the Euclidean MST as sampling density increases under the same Uniform(0,1)^2 data-generating mechanism. Grey segments show the complete MST and blue segments highlight the weighted diameter path. The spatial domain is unchanged across panels; only n increases. Each panel reports total MST length L, weighted diameter D, and Stringy S = D/L.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><a href="#fig-growing-mst" class="quarto-xref">Figure&nbsp;2</a> shows why Stringy can change with sample size even when the underlying distribution does not change.</p>
+<p>As <span class="math inline">\(n\)</span> increases, the MST contains more edges. These edges are generally shorter because the points are packed more densely, but there are many more of them. As a result, the <strong>total MST length</strong> can still increase.</p>
+<p>The <strong>weighted diameter</strong> behaves differently because it uses only the edges along one longest path through the tree. When more points are added, this path may pass through more vertices, but the individual edges along the path also become shorter.</p>
+<p>So the numerator and denominator of Stringy respond to increasing sample size in different ways.</p>
+<p>The key question is therefore not simply whether Stringy changes with <span class="math inline">\(n\)</span>, but <strong>why</strong> it changes. In particular, we want to know whether the total tree length <span class="math inline">\(L_n\)</span> and the longest weighted path <span class="math inline">\(D_n\)</span> grow at different rates.</p>
+<p>The rest of this paper investigates this difference.</p>
+</section>
+</section>
+<section id="references" class="level1 unnumbered" data-number="4">
 
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">3 References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">4 References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-addarioberry2006diameter" class="csl-entry" role="listitem">
 Addario-Berry, Louigi, Nicolas Broutin, and Bruce Reed. 2006. <span>“The Diameter of the Minimum Spanning Tree of a Complete Graph.”</span> <em>Discrete Mathematics &amp; Theoretical Computer Science Proceedings</em> AG: 237–48. <a href="https://doi.org/10.46298/dmtcs.3513">https://doi.org/10.46298/dmtcs.3513</a>.
 </div>
@@ -239,6 +314,9 @@ Friedman, Jerome H. 1987. <span>“Exploratory Projection Pursuit.”</span> <em
 <div id="ref-friedman1974projection" class="csl-entry" role="listitem">
 Friedman, Jerome H., and John W. Tukey. 1974. <span>“A Projection Pursuit Algorithm for Exploratory Data Analysis.”</span> <em>IEEE Transactions on Computers</em> C-23 (9): 881–90. <a href="https://doi.org/10.1109/T-C.1974.224051">https://doi.org/10.1109/T-C.1974.224051</a>.
 </div>
+<div id="ref-gower1969mst" class="csl-entry" role="listitem">
+Gower, J. C., and G. J. S. Ross. 1969. <span>“Minimum Spanning Trees and Single Linkage Cluster Analysis.”</span> <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> 18 (1): 54–64. <a href="https://doi.org/10.2307/2346439">https://doi.org/10.2307/2346439</a>.
+</div>
 <div id="ref-huber1985projection" class="csl-entry" role="listitem">
 Huber, Peter J. 1985. <span>“Projection Pursuit.”</span> <em>The Annals of Statistics</em> 13 (2): 435–75. <a href="https://doi.org/10.1214/aos/1176349519">https://doi.org/10.1214/aos/1176349519</a>.
 </div>
@@ -247,6 +325,9 @@ Penrose, Mathew D. 1997. <span>“The Longest Edge of the Random Minimal Spannin
 </div>
 <div id="ref-steele1988growth" class="csl-entry" role="listitem">
 Steele, J. Michael. 1988. <span>“Growth Rates of Euclidean Minimal Spanning Trees with Power Weighted Edges.”</span> <em>The Annals of Probability</em> 16 (4): 1767–87. <a href="https://doi.org/10.1214/aop/1176991596">https://doi.org/10.1214/aop/1176991596</a>.
+</div>
+<div id="ref-stuetzle2003cluster" class="csl-entry" role="listitem">
+Stuetzle, Werner. 2003. <span>“Estimating the Cluster Tree of a Density by Analyzing the Minimal Spanning Tree of a Sample.”</span> <em>Journal of Classification</em> 20 (1): 25–47. <a href="https://doi.org/10.1007/s00357-003-0004-6">https://doi.org/10.1007/s00357-003-0004-6</a>.
 </div>
 <div id="ref-tukey1975picturing" class="csl-entry" role="listitem">
 Tukey, John W. 1975. <span>“Mathematics and the Picturing of Data.”</span> <em>Proceedings of the International Congress of Mathematicians (Vancouver, BC, 1974), Volume 2</em> (Montreal, Canada), 523–31.

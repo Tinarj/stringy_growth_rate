@@ -159,8 +159,206 @@ The paper addresses five questions:
 
 The paper is deliberately framed as an empirical scaling investigation rather than as a derivation of the asymptotic growth rate of the weighted Euclidean MST diameter. The contribution is instead to connect known MST theory with the finite-sample behaviour of Stringy, identify which component drives the sample-size dependence, evaluate the limits of deterministic scaling, and motivate a statistically calibrated version of the index for projection pursuit.
 
+# Geometry of the Stringy statistic
+
+Stringy is defined by a remarkably simple ratio, but that simplicity hides a more interesting geometric story.
+
+Minimum spanning trees have long been used to summarize spatial relationships among observations. Classical statistical connections include single-linkage clustering [@gower1969mst] and later density-based cluster estimation using the sample MST [@stuetzle2003cluster]. In scagnostics, however, the role of the MST is different: it acts as a geometric skeleton of the scatterplot, from which visual characteristics of the point cloud can be quantified [@wilkinson2005graph; @wilkinson2008scagdist].
+
+For Stringy, the key question is not simply how large the MST is. It is how much of that tree can be captured by one dominant path.
+
+## Anatomy of the index
+
+The distinction among total tree length, weighted diameter, and longest individual edge is easiest to understand by looking directly at the tree.
+
+ @fig-stringy-anatomy shows the same structured point cloud and exactly the same MST, but highlights two different geometric objects. In the left panel, the emphasized path is the **weighted diameter**: the path through the MST whose accumulated Euclidean edge length is largest. This is the quantity used in the numerator of Stringy. In the right panel, only the **single longest edge** is highlighted.
+
+The contrast is important. The longest edge is a local extreme: it identifies one unusually long connection in the tree. The weighted diameter is global: it can pass through many comparatively short edges and accumulate a much larger total length. Although both quantities come from the same MST, they answer fundamentally different geometric questions.
+
+```{r}
+#| label: fig-stringy-anatomy
+#| fig-cap: "Two different geometric summaries of the same minimum spanning tree. Left: the weighted diameter, defined as the path with the greatest accumulated Euclidean length and used in the numerator of Stringy. Right: the single longest MST edge. The comparison illustrates why longest-edge theory does not directly determine the behaviour of the Stringy numerator."
+#| fig-width: 9
+#| fig-height: 4.5
+set.seed(1050)
+n_anatomy <- 200
+u <- runif(n_anatomy, -1, 1)
+polynomial <- poly(u, degree = 2)
+x <- polynomial[, 1] + rnorm(n_anatomy, sd = 0.03)
+y <- polynomial[, 2] + rnorm(n_anatomy, sd = 0.03)
+
+sc_anatomy <- scree(x, y, out.rm = FALSE, binner = NULL)
+mst_anatomy <- cassowaryr:::gen_mst(sc_anatomy$del, sc_anatomy$weights)
+w_anatomy <- E(mst_anatomy)$weight
+
+path_w <- get_diameter(mst_anatomy, directed = FALSE, weights = w_anatomy)
+D_anatomy <- diameter(mst_anatomy, directed = FALSE, weights = w_anatomy)
+L_anatomy <- sum(w_anatomy)
+S_anatomy <- D_anatomy / L_anatomy
+
+longest_edge <- E(mst_anatomy)[which.max(w_anatomy)]
+longest_vertices <- ends(mst_anatomy, longest_edge, names = FALSE)
+
+xy_anatomy <- sc_anatomy$del$x
+path_segments <- data.frame(
+  x = xy_anatomy[head(as.integer(path_w), -1), 1],
+  y = xy_anatomy[head(as.integer(path_w), -1), 2],
+  xend = xy_anatomy[tail(as.integer(path_w), -1), 1],
+  yend = xy_anatomy[tail(as.integer(path_w), -1), 2]
+)
+edge_segment <- data.frame(
+  x = xy_anatomy[longest_vertices[1], 1],
+  y = xy_anatomy[longest_vertices[1], 2],
+  xend = xy_anatomy[longest_vertices[2], 1],
+  yend = xy_anatomy[longest_vertices[2], 2]
+)
+
+base_mst <- draw_mst(mst_anatomy, sc_anatomy) +
+  coord_equal() + paper_theme +
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
+
+p_anatomy_w <- base_mst +
+  geom_segment(
+    data = path_segments,
+    aes(x, y, xend = xend, yend = yend),
+    inherit.aes = FALSE,
+    colour = col_weighted,
+    linewidth = 1.25
+  ) +
+  labs(
+    title = "Weighted diameter path",
+    subtitle = sprintf(
+      "D = %.3f, L = %.3f, Stringy = %.3f",
+      D_anatomy, L_anatomy, S_anatomy
+    ),
+    x = NULL,
+    y = NULL
+  )
+
+p_anatomy_e <- base_mst +
+  geom_segment(
+    data = edge_segment,
+    aes(x, y, xend = xend, yend = yend),
+    inherit.aes = FALSE,
+    colour = col_hop,
+    linewidth = 1.5
+  ) +
+  labs(
+    title = "Longest individual edge",
+    subtitle = sprintf("E = %.3f", max(w_anatomy)),
+    x = NULL,
+    y = NULL
+  )
+
+p_anatomy_w + p_anatomy_e
+```
+
+The original Stringy index compares the length of the longest weighted path with the total length of the tree,
+
+$$
+S_n=\frac{D_n}{L_n}.
+$$
+
+Because every diameter path consists only of edges already contained in the MST,
+
+$$
+0<D_n\leq L_n,
+$$
+
+and therefore
+
+$$
+0<S_n\leq1.
+$$
+
+This bound is built directly into the geometry of the index. A value near one means that most of the tree can be traversed along a single dominant path; a smaller value indicates that more of the total tree length lies in branches away from that path.
+
+This structural bound becomes especially important later. Any proposed normalization that modifies the numerator and denominator differently may reduce sample-size dependence, but it may also break the geometric relationship that guarantees Stringy remains between zero and one.
+
+## Same distribution, increasingly dense MSTs
+
+The sample-size problem becomes more intuitive when the tree is allowed to grow.
+
+@fig-growing-mst shows four independent samples from exactly the same data-generating mechanism,
+
+$$
+(X,Y)\sim U(0,1)^2,
+$$
+
+with only the sample size changing. The square itself does not expand, the underlying distribution does not change, and no new structure is introduced. What changes is the resolution at which the region is sampled.
+
+As $n$ increases, the MST fills the same spatial domain with more vertices and therefore more edges. Individual edges become shorter, but there are more of them. The total tree length, the weighted diameter, and their ratio do not respond to these changes in the same way.
+
+```{r}
+#| label: fig-growing-mst
+#| fig-cap: "The geometry of the Euclidean MST as sampling density increases under the same Uniform(0,1)^2 data-generating mechanism. Grey segments show the complete MST and blue segments highlight the weighted diameter path. The spatial domain is unchanged across panels; only n increases. Each panel reports total MST length L, weighted diameter D, and Stringy S = D/L."
+#| fig-width: 10
+#| fig-height: 7
+make_mst_panel <- function(n, seed) {
+  set.seed(seed)
+  x <- runif(n)
+  y <- runif(n)
+  sc <- scree(x, y, out.rm = FALSE, binner = NULL)
+  mst <- cassowaryr:::gen_mst(sc$del, sc$weights)
+  w <- E(mst)$weight
+  path <- get_diameter(mst, weights = w)
+  xy <- sc$del$x
+
+  seg <- data.frame(
+    x = xy[head(as.integer(path), -1), 1],
+    y = xy[head(as.integer(path), -1), 2],
+    xend = xy[tail(as.integer(path), -1), 1],
+    yend = xy[tail(as.integer(path), -1), 2]
+  )
+
+  L <- sum(w)
+  D <- diameter(mst, weights = w)
+
+  draw_mst(mst, sc) +
+    geom_segment(
+      data = seg,
+      aes(x, y, xend = xend, yend = yend),
+      inherit.aes = FALSE,
+      colour = col_weighted,
+      linewidth = 0.8
+    ) +
+    coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
+    labs(
+      title = paste0("n = ", n),
+      subtitle = sprintf(
+        "L = %.2f   D = %.2f   S = %.3f",
+        L, D, D / L
+      ),
+      x = NULL,
+      y = NULL
+    ) +
+    paper_theme +
+    theme(
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      legend.position = "none"
+    )
+}
+
+make_mst_panel(50, 51) +
+  make_mst_panel(200, 52) +
+  make_mst_panel(1000, 53) +
+  make_mst_panel(3000, 54) +
+  plot_layout(ncol = 2)
+```
 
 
+@fig-growing-mst shows why Stringy can change with sample size even when the underlying distribution does not change.
+
+As $n$ increases, the MST contains more edges. These edges are generally shorter because the points are packed more densely, but there are many more of them. As a result, the **total MST length** can still increase.
+
+The **weighted diameter** behaves differently because it uses only the edges along one longest path through the tree. When more points are added, this path may pass through more vertices, but the individual edges along the path also become shorter.
+
+So the numerator and denominator of Stringy respond to increasing sample size in different ways.
+
+The key question is therefore not simply whether Stringy changes with $n$, but **why** it changes. In particular, we want to know whether the total tree length $L_n$ and the longest weighted path $D_n$ grow at different rates.
+
+The rest of this paper investigates this difference.
 
 
 
